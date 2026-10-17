@@ -38,33 +38,33 @@ if menu == "➕ Novo Cadastro":
     st.subheader("Cadastrar Bebedouro em Campo")
 
     opcoes_predio = ["➕ Digitar Novo Prédio / Escola / ESF"] + predios_cadastrados
-    selecao_predio = st.selectbox("Selecione um Prédio Cadastrado (ou digite um novo)", opcoes_predio)
+    selecao_predio = st.selectbox("Selecione um Prédio Cadastrado (ou digite um novo)", opcoes_predio, key="select_predio_key")
 
     if selecao_predio == "➕ Digitar Novo Prédio / Escola / ESF":
-        predio = st.text_input("Nome do Prédio / Escola / ESF *", placeholder="Ex: EBM Machado de Assis")
+        predio = st.text_input("Nome do Prédio / Escola / ESF *", placeholder="Ex: EBM Machado de Assis", key="input_novo_predio_key")
     else:
         predio = selecao_predio
         st.info(f"📍 Cadastrando bebedouro para: **{predio}**")
 
     with st.form("form_bebedouro", clear_on_submit=True):
-        local_exato = st.text_input("Localização Exata no Prédio *", placeholder="Ex: Bloco B, ao lado da coordenação")
+        local_exato = st.text_input("Localização Exata no Prédio *", placeholder="Ex: Bloco B, ao lado da coordenação", key="local_exato_key")
         
         col1, col2 = st.columns(2)
         with col1:
-            modelo_bebedouro = st.text_input("Modelo do Bebedouro", placeholder="Ex: Coluna Inox IBBL")
+            modelo_bebedouro = st.text_input("Modelo do Bebedouro", placeholder="Ex: Coluna Inox IBBL", key="modelo_key")
         with col2:
-            tipo_filtro = st.text_input("Modelo do Refil / Filtro *", placeholder="Ex: Refil CZ+7 / PP 10\"")
+            tipo_filtro = st.text_input("Modelo do Refil / Filtro *", placeholder="Ex: Refil CZ+7 / PP 10\"", key="filtro_key")
 
-        data_troca = st.date_input("Data da Troca / Instalação", datetime.now())
-        meses_validade = st.number_input("Validade do Filtro (em meses)", min_value=1, max_value=24, value=6)
+        data_troca = st.date_input("Data da Troca / Instalação", datetime.now(), key="data_troca_key")
+        meses_validade = st.number_input("Validade do Filtro (em meses)", min_value=1, max_value=24, value=6, key="validade_key")
         data_proxima = data_troca + timedelta(days=meses_validade * 30)
         
         st.caption(f"📅 Previsão da próxima troca: **{data_proxima.strftime('%d/%m/%Y')}**")
 
-        # Substituído por file_uploader (no telemóvel, abre a câmara diretamente ao tocar)
-        foto_arquivo = st.file_uploader("📸 Tirar / Carregar Foto do Bebedouro ou Refil", type=["jpg", "jpeg", "png"])
+        # Campo de foto sem estruturas condicionais no formulário para evitar erros de DOM
+        foto_arquivo = st.file_uploader("📸 Tirar / Carregar Foto do Bebedouro ou Refil", type=["jpg", "jpeg", "png"], key="foto_key")
 
-        observacoes = st.text_area("Observações Técnicas", placeholder="Ex: Troca de mangueira executada; pressão normal.")
+        observacoes = st.text_area("Observações Técnicas", placeholder="Ex: Troca de mangueira executada; pressão normal.", key="obs_key")
 
         salvar = st.form_submit_button("💾 Salvar Cadastro")
 
@@ -92,7 +92,7 @@ elif menu == "📋 Bebedouros Mapeados":
         st.info("Nenhum bebedouro cadastrado até o momento.")
     else:
         predios_unicos = ["Todos"] + list(df['predio'].unique())
-        filtro_predio = st.selectbox("Filtrar por Prédio / Escola / ESF", predios_unicos)
+        filtro_predio = st.selectbox("Filtrar por Prédio / Escola / ESF", predios_unicos, key="filtro_consulta_key")
 
         df_filtrado = df if filtro_predio == "Todos" else df[df['predio'] == filtro_predio]
 
@@ -125,6 +125,7 @@ elif menu == "📊 Exportar Relatório":
             data=csv,
             file_name="mapeamento_bebedouros_blumenau.csv",
             mime="text/csv",
+            key="btn_download_csv_key"
         )
     else:
         st.info("Cadastre bebedouros para gerar o relatório.")

@@ -46,41 +46,44 @@ if menu == "➕ Novo Cadastro":
         predio = selecao_predio
         st.info(f"📍 Cadastrando bebedouro para: **{predio}**")
 
-    with st.form("form_bebedouro", clear_on_submit=True):
-        local_exato = st.text_input("Localização Exata no Prédio *", placeholder="Ex: Bloco B, ao lado da coordenação", key="local_exato_key")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            modelo_bebedouro = st.text_input("Modelo do Bebedouro", placeholder="Ex: Coluna Inox IBBL", key="modelo_key")
-        with col2:
-            tipo_filtro = st.text_input("Modelo do Refil / Filtro *", placeholder="Ex: Refil CZ+7 / PP 10\"", key="filtro_key")
+    # Substituição do st.form por campos diretos para eliminar erros de DOM no celular
+    local_exato = st.text_input("Localização Exata no Prédio *", placeholder="Ex: Bloco B, ao lado da coordenação", key="local_exato_key")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        modelo_bebedouro = st.text_input("Modelo do Bebedouro", placeholder="Ex: Coluna Inox IBBL", key="modelo_key")
+    with col2:
+        tipo_filtro = st.text_input("Modelo do Refil / Filtro *", placeholder="Ex: Refil CZ+7 / PP 10\"", key="filtro_key")
 
-        data_troca = st.date_input("Data da Troca / Instalação", datetime.now(), key="data_troca_key")
-        meses_validade = st.number_input("Validade do Filtro (em meses)", min_value=1, max_value=24, value=6, key="validade_key")
-        data_proxima = data_troca + timedelta(days=meses_validade * 30)
-        
-        st.caption(f"📅 Previsão da próxima troca: **{data_proxima.strftime('%d/%m/%Y')}**")
+    data_troca = st.date_input("Data da Troca / Instalação", datetime.now(), key="data_troca_key")
+    meses_validade = st.number_input("Validade do Filtro (em meses)", min_value=1, max_value=24, value=6, key="validade_key")
+    data_proxima = data_troca + timedelta(days=meses_validade * 30)
+    
+    st.caption(f"📅 Previsão da próxima troca: **{data_proxima.strftime('%d/%m/%Y')}**")
 
-        # Campo de foto sem estruturas condicionais no formulário para evitar erros de DOM
-        foto_arquivo = st.file_uploader("📸 Tirar / Carregar Foto do Bebedouro ou Refil", type=["jpg", "jpeg", "png"], key="foto_key")
+    foto_arquivo = st.file_uploader("📸 Tirar / Carregar Foto do Bebedouro ou Refil", type=["jpg", "jpeg", "png"], key="foto_key")
 
-        observacoes = st.text_area("Observações Técnicas", placeholder="Ex: Troca de mangueira executada; pressão normal.", key="obs_key")
+    observacoes = st.text_area("Observações Técnicas", placeholder="Ex: Troca de mangueira executada; pressão normal.", key="obs_key")
 
-        salvar = st.form_submit_button("💾 Salvar Cadastro")
+    st.write("")
+    salvar = st.button("💾 Salvar Cadastro", type="primary", key="btn_salvar_key")
 
-        if salvar:
-            if not predio or not local_exato or not tipo_filtro:
-                st.error("Preencha todos os campos obrigatórios (*).")
-            else:
-                foto_bytes = foto_arquivo.read() if foto_arquivo is not None else None
-                
-                c.execute('''
-                    INSERT INTO bebedouros 
-                    (predio, local_exato, modelo_bebedouro, tipo_filtro, data_instalacao, proxima_troca, foto, observacoes)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (predio, local_exato, modelo_bebedouro, tipo_filtro, str(data_troca), str(data_proxima), foto_bytes, observacoes))
-                conn.commit()
-                st.success(f"✅ Bebedouro em '{predio}' registrado com sucesso!")
+    if salvar:
+        if not predio or not local_exato or not tipo_filtro:
+            st.error("Preencha todos os campos obrigatórios (*).")
+        else:
+            foto_bytes = foto_arquivo.read() if foto_arquivo is not None else None
+            
+            c.execute('''
+                INSERT INTO bebedouros 
+                (predio, local_exato, modelo_bebedouro, tipo_filtro, data_instalacao, proxima_troca, foto, observacoes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (predio, local_exato, modelo_bebedouro, tipo_filtro, str(data_troca), str(data_proxima), foto_bytes, observacoes))
+            conn.commit()
+            st.success(f"✅ Bebedouro em '{predio}' registrado com sucesso!")
+            
+            # Recarrega a aplicação limpa após salvar para resetar os estados
+            st.rerun()
 
 # --- ABA 2: CONSULTA EM CAMPO ---
 elif menu == "📋 Bebedouros Mapeados":

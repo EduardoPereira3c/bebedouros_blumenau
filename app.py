@@ -10,7 +10,6 @@ st.set_page_config(page_title="Gestão de Bebedouros - PMB", layout="centered", 
 conn = sqlite3.connect("bebedouros_blumenau.db", check_same_thread=False)
 c = conn.cursor()
 
-# Tabela sem a coluna de secretaria
 c.execute('''
     CREATE TABLE IF NOT EXISTS bebedouros (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,7 +37,6 @@ predios_cadastrados = [r[0] for r in c.fetchall()]
 if menu == "➕ Novo Cadastro":
     st.subheader("Cadastrar Bebedouro em Campo")
 
-    # Opções para a busca rápida de prédio
     opcoes_predio = ["➕ Digitar Novo Prédio / Escola / ESF"] + predios_cadastrados
     selecao_predio = st.selectbox("Selecione um Prédio Cadastrado (ou digite um novo)", opcoes_predio)
 
@@ -63,11 +61,8 @@ if menu == "➕ Novo Cadastro":
         
         st.caption(f"📅 Previsão da próxima troca: **{data_proxima.strftime('%d/%m/%Y')}**")
 
-        # Câmera acionada somente sob demanda
-        ativar_camera = st.checkbox("📸 Tirar foto do bebedouro / refil")
-        foto_camera = None
-        if ativar_camera:
-            foto_camera = st.camera_input("Capturar Foto")
+        # Substituído por file_uploader (no telemóvel, abre a câmara diretamente ao tocar)
+        foto_arquivo = st.file_uploader("📸 Tirar / Carregar Foto do Bebedouro ou Refil", type=["jpg", "jpeg", "png"])
 
         observacoes = st.text_area("Observações Técnicas", placeholder="Ex: Troca de mangueira executada; pressão normal.")
 
@@ -77,7 +72,7 @@ if menu == "➕ Novo Cadastro":
             if not predio or not local_exato or not tipo_filtro:
                 st.error("Preencha todos os campos obrigatórios (*).")
             else:
-                foto_bytes = foto_camera.getvalue() if foto_camera and foto_camera else None
+                foto_bytes = foto_arquivo.read() if foto_arquivo is not None else None
                 
                 c.execute('''
                     INSERT INTO bebedouros 
@@ -86,7 +81,6 @@ if menu == "➕ Novo Cadastro":
                 ''', (predio, local_exato, modelo_bebedouro, tipo_filtro, str(data_troca), str(data_proxima), foto_bytes, observacoes))
                 conn.commit()
                 st.success(f"✅ Bebedouro em '{predio}' registrado com sucesso!")
-                st.rerun()
 
 # --- ABA 2: CONSULTA EM CAMPO ---
 elif menu == "📋 Bebedouros Mapeados":
